@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubecon-2025-eu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubecon-2025-eu
+  template:
+    metadata:
+      labels:
+        app: kubecon-2025-eu
+    spec:
+      containers:
+        - name: kubecon-2025-eu
+          image: ko://github.com/houshengbo/kubecon-2025-eu/cmd/application
+          ports:
+            - containerPort: 8000
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubecon-2025-eu-service
+spec:
+  selector:
+    app: kubecon-2025-eu
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer
+
+# kubectl port-forward service/kubecon-2025-eu-service 8000:30000

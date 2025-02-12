@@ -7,7 +7,7 @@ This repository is used to facilitate the Kubecon EU 2025 session [Optimizing Me
 Install ko:
 
 ```
-brew install wrk
+brew install ko
 ```
 
 Install wrk with the command:
@@ -30,14 +30,20 @@ Run the following command to install OpenTelemetry Operator:
 kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/download/v0.117.0/opentelemetry-operator.yaml
 ```
 
+Install everything with:
+
+```
+ko apply -f config/
+```
+
 Install the sidecar mode for OpenTelemetry:
 
 ```
-kubectl apply -f config/sidecarOTeL.yaml
+kubectl apply -f config/001-sidecarotel.yaml
 ```
 
 Create the deployment and service:
 
 ```
-ko apply -f config/deployment.yaml
+ko apply -f config/002-deployment.yaml
 ```

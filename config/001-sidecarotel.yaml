@@ -2,6 +2,7 @@ apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
   name: sidecar-for-my-app
+  namespace: otel
 spec:
   mode: sidecar
   config:
@@ -18,7 +19,7 @@ spec:
       debug:
     service:
       pipelines:
-        traces:
+        metrics:
           receivers: [prometheus]
           processors: []
           exporters: [debug]

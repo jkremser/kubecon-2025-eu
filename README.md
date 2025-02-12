@@ -36,6 +36,12 @@ Install everything with:
 ko apply -f config/
 ```
 
+Create the namespace:
+
+```
+kubectl apply -f config/000-namespace.yaml
+```
+
 Install the sidecar mode for OpenTelemetry:
 
 ```

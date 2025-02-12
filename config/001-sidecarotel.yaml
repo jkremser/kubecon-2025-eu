@@ -17,9 +17,13 @@ spec:
     processors:
     exporters:
       debug:
+      #prometheus:
+        #endpoint: ${env:MY_POD_IP}:8889
+      prometheus:
+        endpoint: kubecon-2025-eu-service.otel.svc.cluster-domain.local:9090
     service:
       pipelines:
         metrics:
           receivers: [prometheus]
           processors: []
-          exporters: [debug]
+          exporters: [debug, prometheus]

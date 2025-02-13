@@ -13,17 +13,19 @@ spec:
           - job_name: 'otel-collector'
             scrape_interval: 5s
             static_configs:
-            - targets: ['0.0.0.0:8000']
+            - targets: ['localhost:8000']
     processors:
     exporters:
+      otlp/keda:
+        endpoint: keda-otel-scaler.keda.svc:4317
+        compression: "none"
+        tls:
+          insecure: true
       debug:
-      #prometheus:
-        #endpoint: ${env:MY_POD_IP}:8889
-      prometheus:
-        endpoint: kubecon-2025-eu-service.otel.svc.cluster-domain.local:9090
+        verbosity: detailed
     service:
       pipelines:
         metrics:
           receivers: [prometheus]
           processors: []
-          exporters: [debug, prometheus]
+          exporters: [debug, otlp/keda]

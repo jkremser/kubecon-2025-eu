@@ -7,6 +7,7 @@ spec:
   mode: sidecar
   config:
     receivers:
+      # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/prometheusreceiver/README.md
       prometheus:
         config:
           scrape_configs:
@@ -14,6 +15,11 @@ spec:
             scrape_interval: 5s
             static_configs:
             - targets: ['localhost:8000']
+            relabel_configs:
+            # all the 'implicit' labels starting with __ will be dropped, so we need to preserve the pod identity
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: pod_name
     processors:
     exporters:
       otlp/keda:

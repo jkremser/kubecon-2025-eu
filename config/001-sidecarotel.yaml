@@ -1,12 +1,13 @@
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: sidecar-for-my-app
+  name: otel-sidecar-template
   namespace: otel
 spec:
   mode: sidecar
   config:
     receivers:
+      # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/prometheusreceiver/README.md
       prometheus:
         config:
           scrape_configs:
@@ -15,6 +16,10 @@ spec:
             static_configs:
             - targets: ['localhost:8000']
     processors:
+      resourcedetection/env:
+        detectors: [env]
+        timeout: 2s
+        override: false
     exporters:
       otlp/keda:
         endpoint: keda-otel-scaler.keda.svc:4317
@@ -27,5 +32,5 @@ spec:
       pipelines:
         metrics:
           receivers: [prometheus]
-          processors: []
+          processors: [resourcedetection/env]
           exporters: [debug, otlp/keda]

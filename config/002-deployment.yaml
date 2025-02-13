@@ -13,7 +13,7 @@ spec:
       labels:
         app: kubecon-2025-eu
       annotations:
-        sidecar.opentelemetry.io/inject: 'true'
+        sidecar.opentelemetry.io/inject: 'otel-sidecar-template'
     spec:
       containers:
         - name: kubecon-2025-eu

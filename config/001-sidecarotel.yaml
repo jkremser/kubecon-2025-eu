@@ -1,7 +1,7 @@
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: sidecar-for-my-app
+  name: otel-sidecar-template
   namespace: otel
 spec:
   mode: sidecar
@@ -15,12 +15,11 @@ spec:
             scrape_interval: 5s
             static_configs:
             - targets: ['localhost:8000']
-            relabel_configs:
-            # all the 'implicit' labels starting with __ will be dropped, so we need to preserve the pod identity
-            - source_labels: [__meta_kubernetes_pod_name]
-              action: replace
-              target_label: pod_name
     processors:
+      resourcedetection/env:
+        detectors: [env]
+        timeout: 2s
+        override: false
     exporters:
       otlp/keda:
         endpoint: keda-otel-scaler.keda.svc:4317
@@ -33,5 +32,5 @@ spec:
       pipelines:
         metrics:
           receivers: [prometheus]
-          processors: []
+          processors: [resourcedetection/env]
           exporters: [debug, otlp/keda]

@@ -26,8 +26,15 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 
 Run the following command to install OpenTelemetry Operator:
 
-```
+<!-- ```
 kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/download/v0.117.0/opentelemetry-operator.yaml
+``` -->
+
+```
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+helm repo update open-telemetry
+helm upgrade -i otel-operator open-telemetry/opentelemetry-operator -notel \
+--set manager.collectorImage.repository=otel/opentelemetry-collector-k8s
 ```
 
 # KEDA & KEDA OTel Scaler

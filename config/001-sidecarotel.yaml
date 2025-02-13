@@ -20,6 +20,14 @@ spec:
         detectors: [env]
         timeout: 2s
         override: false
+      transform:
+        metric_statements:
+          - context: datapoint
+            statements:
+              - set(attributes["namespace"], resource.attributes["k8s.namespace.name"])
+              - set(attributes["pod"], resource.attributes["k8s.pod.name"])
+              - set(attributes["pod_id"], resource.attributes["k8s.pod.uid"])
+              - set(attributes["node"], resource.attributes["k8s.node.name"])
     exporters:
       otlp/keda:
         endpoint: keda-otel-scaler.keda.svc:4317
@@ -36,5 +44,5 @@ spec:
       pipelines:
         metrics:
           receivers: [prometheus]
-          processors: [resourcedetection/env]
-          exporters: [debug, otlp/keda, prometheus]
+          processors: [resourcedetection/env, transform]
+          exporters: [debug, prometheus, otlp/keda]

@@ -28,9 +28,13 @@ spec:
           insecure: true
       debug:
         verbosity: detailed
+      prometheus:
+        endpoint: "0.0.0.0:1234"
+        metric_expiration: 180m
+        enable_open_metrics: true
     service:
       pipelines:
         metrics:
           receivers: [prometheus]
           processors: [resourcedetection/env]
-          exporters: [debug, otlp/keda]
+          exporters: [debug, otlp/keda, prometheus]

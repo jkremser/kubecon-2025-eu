@@ -32,9 +32,8 @@ kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releas
 
 ```
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-helm repo update open-telemetry
-helm upgrade -i otel-operator open-telemetry/opentelemetry-operator -notel \
---set manager.collectorImage.repository=otel/opentelemetry-collector-k8s
+helm install my-opentelemetry-operator open-telemetry/opentelemetry-operator -nopentelemetry-operator --create-namespace\
+  --set "manager.collectorImage.repository=otel/opentelemetry-collector-contrib"
 ```
 
 # KEDA & KEDA OTel Scaler
@@ -82,7 +81,7 @@ Create the deployment and service:
 ko apply -f config/002-deployment.yaml
 ```
 
-The example application exposes couple of metrics at port `8000` and co-located OTel collector scrapes them and sends to grpc endpoint - `keda-otel-scaler.keda.svc:4317`.
+The example application exposes a couple of metrics at port `8000` and co-located OTel collector scrapes them and sends to grpc endpoint - `keda-otel-scaler.keda.svc:4317`.
 
 To verify that metrics have reached the scaler, you can try:
 

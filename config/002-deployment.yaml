@@ -4,7 +4,7 @@ metadata:
   name: kubecon-2025-eu
   namespace: otel
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: kubecon-2025-eu
@@ -13,7 +13,7 @@ spec:
       labels:
         app: kubecon-2025-eu
       annotations:
-        sidecar.opentelemetry.io/inject: 'otel-sidecar-template'
+        sidecar.opentelemetry.io/inject: 'true'
     spec:
       containers:
         - name: kubecon-2025-eu
@@ -31,9 +31,12 @@ spec:
   selector:
     app: kubecon-2025-eu
   ports:
-    - protocol: TCP
+    - name: usercontainer
+      protocol: TCP
       port: 8000
       targetPort: 8000
+    - name: sidecar
+      protocol: TCP
+      port: 1234
+      targetPort: 1234
   type: LoadBalancer
-
-# kubectl port-forward service/kubecon-2025-eu-service 8000:30000

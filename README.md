@@ -1,6 +1,7 @@
 # Providing LLM autoscaling solution with OpenTelemetry and KEDA
 
 This repository is used to facilitate the Kubecon EU 2025 session [Optimizing Metrics Collection & Serving When Autoscaling LLM Workloads](https://kccnceu2025.sched.com/event/1txI4/optimizing-metrics-collection-serving-when-autoscaling-llm-workloads-vincent-hou-bloomberg-jiri-kremser-kedifyio?iframe=no).
+You can access the slides [here](https://docs.google.com/presentation/d/12Q5tOHEwWmsnOQNstCj3aHYx-SfI1odc/edit#slide=id.p1).
 
 ## Prerequisites:
 

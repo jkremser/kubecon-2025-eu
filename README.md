@@ -54,32 +54,44 @@ helm upgrade -i kedify-otel oci://ghcr.io/kedify/charts/otel-add-on -nkeda \
   --set opentelemetry-collector.enabled=false
 ```
 
-# User Workload
+# How to collect the metrics
+
+There are two modes as we leverage OpenTelemetry to collect the metrics of the workload:
+
+- [Standalone](#standalone-mode)
+- [Sidecar](#sidecar-mode)
+
+## Standalone mode
+
+TBD.
+
+## Sidecar mode
+
 Install everything with:
 
 > [!TIP]
 > You may want to configure `ko` with `export KO_DOCKER_REPO=docker.io/${USER}/` first.
 
 ```
-ko apply -f config/
+ko apply -f config/sidecar
 ```
 
 Create the namespace:
 
 ```
-kubectl apply -f config/000-namespace.yaml
+kubectl apply -f config/sidecar/000-namespace.yaml
 ```
 
 Install the sidecar mode for OpenTelemetry:
 
 ```
-kubectl apply -f config/001-sidecarotel.yaml
+kubectl apply -f config/sidecar/001-sidecarotel.yaml
 ```
 
 Create the deployment and service:
 
 ```
-ko apply -f config/002-deployment.yaml
+ko apply -f config/sidecar/002-deployment.yaml
 ```
 
 The example application exposes a couple of metrics at port `8000` and co-located OTel collector scrapes them and sends to grpc endpoint - `keda-otel-scaler.keda.svc:4317`.

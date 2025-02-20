@@ -114,6 +114,15 @@ curl -s http://localhost:19090/memstore/names | jq .
 ]
 ```
 
+Send traffic to the service:
+
+```
+wrk -t 10 -c 400 -d 10m --latency "http://localhost:8000"
+```
+This command runs a 10-minute test with 10 threads and 400 connections, simulating high traffic.
+
+Visit this link with your browser to check the metrics: http://localhost:8000/metrics
+
 # Create a Scaled Object
 
-// todo this
+// TODO

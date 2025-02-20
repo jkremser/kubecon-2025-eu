@@ -49,21 +49,20 @@ var postsLatencySummary = prometheus.NewSummary(prometheus.SummaryOpts{
 // Middleware to count HTTP requests
 func prometheusMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		recorder := &statusRecorder{
+			ResponseWriter: w,
+			statusCode:     http.StatusOK,
+		}
 		if r.URL.Path == "/metrics" {
+			// Process the request
+			next.ServeHTTP(recorder, r)
 			return
 		}
-
 		now := time.Now()
 		delay := time.Duration(rand.Intn(900)) * time.Millisecond
 		time.Sleep(delay)
 
 		activeRequestsGauge.Inc()
-		// Wrap the ResponseWriter to capture the status code
-		recorder := &statusRecorder{
-			ResponseWriter: w,
-			statusCode:     http.StatusOK,
-		}
-
 		time.Sleep(1 * time.Second)
 
 		// Process the request
@@ -79,6 +78,7 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 
 		// Increment the counter
 		httpRequestCounter.WithLabelValues(status, path, method).Inc()
+
 	})
 }
 

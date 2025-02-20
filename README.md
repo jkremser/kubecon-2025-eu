@@ -100,6 +100,13 @@ Create the deployment and service:
 ko apply -f config/sidecar/002-deployment.yaml
 ```
 
+
+Create a Scaled Object
+
+```
+kubectl apply -f config/sidecar/003-scaledobject.yaml
+```
+
 The example application exposes a couple of metrics at port `8000` and co-located OTel collector scrapes them and sends to grpc endpoint - `keda-otel-scaler.keda.svc:4317`.
 
 To verify that metrics have reached the scaler, you can try:
@@ -124,10 +131,7 @@ Send traffic to the service:
 ```
 wrk -t 10 -c 400 -d 10m --latency "http://localhost:8000"
 ```
+
 This command runs a 10-minute test with 10 threads and 400 connections, simulating high traffic.
 
 Visit this link with your browser to check the metrics: http://localhost:8000/metrics
-
-# Create a Scaled Object
-
-// TODO

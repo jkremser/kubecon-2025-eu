@@ -52,8 +52,13 @@ Install the KEDA OTel addon
 ```
 helm upgrade -i kedify-otel oci://ghcr.io/kedify/charts/otel-add-on -nkeda \
   --version=v0.0.5 \
-  --set opentelemetry-collector.enabled=false
+  --set opentelemetry-collector.enabled=false \
+  --set settings.metricStoreRetentionSeconds=60
 ```
+
+We disable the opentelemetry collector in the KEDA OTel addon, since we leverage the sidecar to collect the metrics
+with the opentelemetry collector. We set `metricStoreRetentionSeconds` to 60s, meaning that the metrics expires in 60s
+in the temporary storage of the KEDA OTel addon.
 
 # How to collect the metrics
 

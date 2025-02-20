@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubecon-2025-eu
+  namespace: otel-standalone
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kubecon-2025-eu
+  template:
+    metadata:
+      labels:
+        app: kubecon-2025-eu
+      annotations:
+        sidecar.opentelemetry.io/inject: 'true'
+    spec:
+      containers:
+        - name: kubecon-2025-eu
+          image: ko://github.com/houshengbo/kubecon-2025-eu/cmd/application
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubecon-2025-eu-service
+  namespace: otel-sidecar
+spec:
+  selector:
+    app: kubecon-2025-eu
+  ports:
+    - name: usercontainer
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+    - name: sidecar
+      protocol: TCP
+      port: 1234
+      targetPort: 1234
+  type: LoadBalancer

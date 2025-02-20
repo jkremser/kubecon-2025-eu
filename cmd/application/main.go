@@ -49,6 +49,10 @@ var postsLatencySummary = prometheus.NewSummary(prometheus.SummaryOpts{
 // Middleware to count HTTP requests
 func prometheusMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/metrics" {
+			return
+		}
+
 		now := time.Now()
 		delay := time.Duration(rand.Intn(900)) * time.Millisecond
 		time.Sleep(delay)

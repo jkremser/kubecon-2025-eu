@@ -26,8 +26,7 @@ spec:
             statements:
               - set(attributes["namespace"], resource.attributes["k8s.namespace.name"])
               - set(attributes["pod"], resource.attributes["k8s.pod.name"])
-              - set(attributes["pod_id"], resource.attributes["k8s.pod.uid"])
-              - set(attributes["node"], resource.attributes["k8s.node.name"])
+              - set(attributes["deployment"], resource.attributes["k8s.deployment.name"])
     exporters:
       otlp/keda:
         endpoint: keda-otel-scaler.keda.svc:4317

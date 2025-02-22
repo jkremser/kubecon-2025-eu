@@ -15,6 +15,7 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: kubecon-2025-eu
@@ -40,5 +41,4 @@ spec:
       protocol: TCP
       port: 8000
       targetPort: 8000
-      nodePort: 31198
-  type: NodePort
+  type: LoadBalancer

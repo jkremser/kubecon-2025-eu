@@ -10,10 +10,9 @@ spec:
     - type: external
       metadata:
         scalerAddress: "keda-otel-scaler.keda.svc:4318"
-        metricQuery: "sum(http_active_requests)"
-        #operationOverTime: "avg"
-        targetValue: "1000"
-        #clampMax: "600"
+        metricQuery: "sum(http_active_requests{namespace=otel-standalone, deployment=kubecon-2025-eu})"
+        #operationOverTime: "sum"
+        targetValue: "40"
   minReplicaCount: 2
   advanced:
     horizontalPodAutoscalerConfig:

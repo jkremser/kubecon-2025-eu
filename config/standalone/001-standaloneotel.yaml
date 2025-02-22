@@ -7,31 +7,17 @@ spec:
   mode: deployment
   config:
     receivers:
-      # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/prometheusreceiver/README.md
       prometheus:
         config:
           scrape_configs:
-            - job_name: 'otelcol'
-              scrape_interval: 5s
-              static_configs:
-                - targets: ['0.0.0.0:8000']
             - job_name: k8s
               scrape_interval: 5s
               kubernetes_sd_configs:
-                - role: service
+                - role: pod
               relabel_configs:
-                - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
-                  regex: "true"
+                - source_labels: [ __meta_kubernetes_pod_label_app ]
+                  regex: "kubecon-2025-eu"
                   action: keep
-                - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
-                  action: replace
-                  target_label: __metrics_path__
-                  regex: (.+)
-                - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
-                  action: replace
-                  target_label: __address__
-                  regex: (.+)(?::\d+);(\d+)
-                  replacement: $1:$2
     processors:
       resourcedetection/env:
         detectors: [env]
@@ -41,7 +27,9 @@ spec:
         metric_statements:
           - context: datapoint
             statements:
-              - set(attributes["host"], resource.attributes["net.host.name"])
+              - set(attributes["namespace"], resource.attributes["k8s.namespace.name"])
+              - set(attributes["pod"], resource.attributes["k8s.pod.name"])
+              - set(attributes["deployment"], resource.attributes["k8s.deployment.name"])
     exporters:
       otlp/keda:
         endpoint: keda-otel-scaler.keda.svc:4317
@@ -58,7 +46,7 @@ spec:
       pipelines:
         metrics:
           receivers: [prometheus]
-          #processors: [resourcedetection/env, transform]
+          processors: [resourcedetection/env, transform]
           exporters: [debug, otlp/keda]
 
 ---

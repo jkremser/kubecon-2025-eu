@@ -7,7 +7,6 @@ spec:
   mode: sidecar
   config:
     receivers:
-      # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/prometheusreceiver/README.md
       prometheus:
         config:
           scrape_configs:

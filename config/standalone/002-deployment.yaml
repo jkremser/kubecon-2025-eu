@@ -12,6 +12,9 @@ spec:
     metadata:
       labels:
         app: kubecon-2025-eu
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
     spec:
       containers:
         - name: kubecon-2025-eu
@@ -25,6 +28,10 @@ kind: Service
 metadata:
   name: kubecon-2025-eu-service
   namespace: otel-standalone
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "8000"
 spec:
   selector:
     app: kubecon-2025-eu
@@ -33,4 +40,5 @@ spec:
       protocol: TCP
       port: 8000
       targetPort: 8000
-  type: LoadBalancer
+      nodePort: 31198
+  type: NodePort

@@ -1,10 +1,10 @@
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: otel-sidecar-template
-  namespace: otel-sidecar
+  name: otel-standalone-template
+  namespace: otel-standalone
 spec:
-  mode: sidecar
+  mode: deployment
   config:
     receivers:
       # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/prometheusreceiver/README.md
@@ -14,7 +14,7 @@ spec:
           - job_name: 'otel-collector'
             scrape_interval: 5s
             static_configs:
-            - targets: ['0.0.0.0:8000']
+            - targets: ['kubecon-2025-eu-service.otel-standalone.svc:8000']
     processors:
       resourcedetection/env:
         detectors: [env]
@@ -24,10 +24,7 @@ spec:
         metric_statements:
           - context: datapoint
             statements:
-              - set(attributes["namespace"], resource.attributes["k8s.namespace.name"])
-              - set(attributes["pod"], resource.attributes["k8s.pod.name"])
-              - set(attributes["pod_id"], resource.attributes["k8s.pod.uid"])
-              - set(attributes["node"], resource.attributes["k8s.node.name"])
+              - set(attributes["host"], resource.attributes["net.host.name"])
     exporters:
       otlp/keda:
         endpoint: keda-otel-scaler.keda.svc:4317
@@ -44,5 +41,5 @@ spec:
       pipelines:
         metrics:
           receivers: [prometheus]
-          processors: [resourcedetection/env, transform]
-          exporters: [debug, prometheus, otlp/keda]
+          #processors: [resourcedetection/env, transform]
+          exporters: [debug, otlp/keda]

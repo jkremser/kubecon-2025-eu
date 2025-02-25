@@ -11,7 +11,7 @@ spec:
       metadata:
         scalerAddress: "keda-otel-scaler.keda.svc:4318"
         metricQuery: "sum(http_active_requests{namespace=otel-standalone, deployment=kubecon-2025-eu})"
-        #operationOverTime: "sum"
+        operationOverTime: "avg"
         targetValue: "40"
   minReplicaCount: 2
   advanced:

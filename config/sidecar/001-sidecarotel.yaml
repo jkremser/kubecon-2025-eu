@@ -14,6 +14,7 @@ spec:
             scrape_interval: 5s
             static_configs:
             - targets: ['0.0.0.0:8000']
+
     processors:
       resourcedetection/env:
         detectors: [env]

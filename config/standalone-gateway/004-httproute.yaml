@@ -1,0 +1,26 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    app: kubecon-2025-eu
+  name: kubecon-2025-eu-htproute
+  namespace: otel-standalone
+spec:
+  hostnames:
+    - local.projectcontour.io
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: contour
+      namespace: projectcontour
+  rules:
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: kubecon-2025-eu-service
+          port: 8000
+          weight: 1
+      matches:
+        - path:
+            type: PathPrefix
+            value: /

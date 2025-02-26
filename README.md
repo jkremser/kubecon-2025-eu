@@ -100,7 +100,6 @@ Create the deployment and service:
 ko apply -f config/sidecar/002-deployment.yaml
 ```
 
-
 Create a Scaled Object
 
 ```
@@ -126,6 +125,11 @@ curl -s http://localhost:19090/memstore/names | jq .
 ]
 ```
 
+Access the service with curl:
+```
+curl -i http://localhost:8000
+```
+
 Send traffic to the service:
 
 ```
@@ -135,3 +139,51 @@ wrk -t 10 -c 400 -d 10m --latency "http://localhost:8000"
 This command runs a 10-minute test with 10 threads and 400 connections, simulating high traffic.
 
 Visit this link with your browser to check the metrics: http://localhost:8000/metrics
+
+## Adding API gateway
+
+If you use Contour gateway to access the service, try the following commands. The purpose of using the API gateway is to
+make sure the traffic can be redistributed across the newly-launched pods.
+
+Deploy gateway provisioner:
+
+```
+kubectl apply -f https://projectcontour.io/quickstart/contour-gateway-provisioner.yaml
+```
+
+Install the gateway and gatewayClass:
+
+```
+kubectl apply -f config/gateway.yaml
+```
+
+Install the httproute:
+
+```
+kubectl apply -f config/sidecar-gateway
+```
+
+or
+
+```
+kubectl apply -f config/standalone-gateway
+```
+
+Port-forward from your local machine to the Envoy service:
+
+```
+kubectl -n projectcontour port-forward service/envoy-contour 8888:80
+```
+
+Access the service with curl:
+```
+curl -i -H 'Host: local.projectcontour.io' http://localhost:8888
+```
+
+Access the service with wrk:
+
+```
+wrk -H 'Host: local.projectcontour.io' -t 10 -c 400 -d 10m --latency "http://localhost:8888"
+```
+
+This command runs a 10-minute test with 10 threads and 400 connections, simulating high traffic, via the gateway.

@@ -39,4 +39,5 @@ spec:
       protocol: TCP
       port: 1234
       targetPort: 1234
+  #sessionAffinity: None
   type: LoadBalancer

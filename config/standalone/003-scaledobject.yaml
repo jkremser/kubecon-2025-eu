@@ -1,19 +1,19 @@
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: kubecon-2025-eu
+  name: otel-standalone
   namespace: otel-standalone
 spec:
   scaleTargetRef:
-    name: kubecon-2025-eu
+    name: otel-standalone
   triggers:
     - type: external
       metadata:
         scalerAddress: "keda-otel-scaler.keda.svc:4318"
-        metricQuery: "sum(http_active_requests{namespace=otel-standalone, deployment=kubecon-2025-eu})"
+        metricQuery: "sum(http_active_requests{namespace=otel-standalone, deployment=otel-standalone})"
         operationOverTime: "avg"
-        targetValue: "40"
-  minReplicaCount: 2
+        targetValue: "20"
+  minReplicaCount: 3
   advanced:
     horizontalPodAutoscalerConfig:
       behavior:

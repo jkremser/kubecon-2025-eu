@@ -30,12 +30,12 @@ spec:
               - set(attributes["namespace"], resource.attributes["k8s.namespace.name"])
               - set(attributes["pod"], resource.attributes["k8s.pod.name"])
               - set(attributes["deployment"], resource.attributes["k8s.deployment.name"])
-      filter/metrics:
-        metrics:
-          include:
-            match_type: strict
-            metric_names:
-              - http_active_requests
+#      filter/metrics:
+#        metrics:
+#          include:
+#            match_type: strict
+#            metric_names:
+#              - http_active_requests
     exporters:
       otlp/keda:
         endpoint: keda-otel-scaler.keda.svc:4317
@@ -52,5 +52,6 @@ spec:
       pipelines:
         metrics:
           receivers: [prometheus]
-          processors: [filter/metrics, resourcedetection/env, transform]
-          exporters: [debug, prometheus, otlp/keda]
+          #processors: [resourcedetection/env, transform]
+          #exporters: [debug, prometheus, otlp/keda]
+          exporters: [prometheus]

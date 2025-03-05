@@ -25,3 +25,43 @@ spec:
         - path:
             type: PathPrefix
             value: /
+
+
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubecon-2025-eu-service
+  namespace: otel-sidecar
+spec:
+  ingressClassName: istio
+  rules:
+    - host: kubecon-2025-eu-service.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubecon-2025-eu-service
+                port:
+                  number: 8000
+EOF
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubecon-2025-eu-service
+spec:
+  ingressClassName: istio
+  rules:
+    - host: kubecon-2025-eu-service.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: httpbin
+                port:
+                  number: 8000

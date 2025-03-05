@@ -16,7 +16,7 @@ spec:
               - role: pod
             relabel_configs:
               - source_labels: [ __meta_kubernetes_pod_label_app ]
-                regex: "kubecon-2025-eu"
+                regex: "otel-standalone"
                 action: keep
             #metric_relabel_configs:
             #  - source_labels: ['__name__']

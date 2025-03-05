@@ -152,6 +152,11 @@ Deploy gateway provisioner:
 kubectl apply -f https://projectcontour.io/quickstart/contour-gateway-provisioner.yaml
 ```
 
+```
+kubectl apply -f https://raw.githubusercontent.com/projectcontour/contour/release-1.30/examples/gateway/00-crds.yaml
+kubectl apply -f contour.yaml
+```
+
 Install the gateway and gatewayClass:
 
 ```
@@ -173,6 +178,9 @@ kubectl apply -f config/standalone-gateway
 Port-forward from your local machine to the Envoy service:
 
 ```
+kubectl -n projectcontour port-forward service/envoy 8888:80
+```
+```
 kubectl -n projectcontour port-forward service/envoy-contour 8888:80
 ```
 
@@ -181,10 +189,21 @@ Access the service with curl:
 curl -i -H 'Host: local.projectcontour.io' http://localhost:8888
 ```
 
+curl -i -H 'Host: otel-sidecar-service.example.com' http://localhost:80
+
+curl -i -H 'Host: otel-standalone-service.example.com' http://localhost:80
+
+
+
 Access the service with wrk:
 
 ```
-wrk -H 'Host: local.projectcontour.io' -t 10 -c 400 -d 10m --latency "http://localhost:8888"
+wrk -H 'Host: local.projectcontour.io' -t 10 -c 400 -d 10m --latency "http://localhost:80"
 ```
+
+wrk -H 'Host: otel-sidecar-service.example.com' -t 10 -c 400 -d 10m --latency "http://localhost:80"
+
+wrk -H 'Host: otel-standalone-service.example.com' -t 10 -c 400 -d 10m --latency "http://localhost:80"
+
 
 This command runs a 10-minute test with 10 threads and 400 connections, simulating high traffic, via the gateway.

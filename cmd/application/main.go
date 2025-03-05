@@ -78,7 +78,7 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 
 		// Increment the counter
 		httpRequestCounter.WithLabelValues(status, path, method).Inc()
-
+		log.Println("This pod received the requests: ", activeRequestsGauge)
 	})
 }
 

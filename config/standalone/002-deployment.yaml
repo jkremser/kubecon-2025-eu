@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kubecon-2025-eu
+  name: otel-standalone
   namespace: otel-standalone
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: kubecon-2025-eu
+      app: otel-standalone
   template:
     metadata:
       labels:
-        app: kubecon-2025-eu
+        app: otel-standalone
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
         #prometheus.io/path: "/metrics"
     spec:
       containers:
-        - name: kubecon-2025-eu
+        - name: otel-standalone
           image: ko://github.com/houshengbo/kubecon-2025-eu/cmd/application
           ports:
             - containerPort: 8000
@@ -27,7 +27,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kubecon-2025-eu-service
+  name: otel-standalone-service
   namespace: otel-standalone
   annotations:
     prometheus.io/scrape: "true"
@@ -35,7 +35,7 @@ metadata:
     prometheus.io/port: "8000"
 spec:
   selector:
-    app: kubecon-2025-eu
+    app: otel-standalone
   ports:
     - name: usercontainer
       protocol: TCP

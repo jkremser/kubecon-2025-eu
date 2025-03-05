@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: otel-standalone-service
+  namespace: otel-standalone
+spec:
+  ingressClassName: istio
+  rules:
+    - host: otel-standalone-service.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: otel-standalone-service
+                port:
+                  number: 8000

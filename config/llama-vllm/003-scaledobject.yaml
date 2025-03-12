@@ -1,0 +1,35 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: autoscaling-llama-3-1-70b-instruct-vllm-predictor
+  namespace: s-dsplatform
+spec:
+  scaleTargetRef:
+    name: autoscaling-llama-3-1-70b-instruct-vllm-predictor
+  triggers:
+    - type: external
+      metadata:
+        scalerAddress: "keda-otel-scaler.keda.svc:4318"
+        metricQuery: "sum(vllm:gpu_cache_usage_perc_scaled{namespace=s-dsplatform, deployment=autoscaling-llama-3-1-70b-instruct-vllm-predictor})"
+        operationOverTime: "avg"
+        targetValue: "35"
+#    - type: external
+#      metadata:
+#        scalerAddress: "keda-otel-scaler.keda.svc:4318"
+#        metricQuery: "rate(vllm:queue_size{namespace=s-dsplatform, deployment=autoscaling-llama-3-1-70b-instruct-vllm-predictor})"
+#        operationOverTime: "avg"
+#        targetValue: "100"
+#    - type: http
+#      metadata:
+#        scalerAddress: "keda-otel-scaler.keda.svc:4318"
+#        metricQuery: "sum(vllm:gpu_cache_usage_perc_scaled{namespace=s-dsplatform, deployment=autoscaling-llama-3-1-70b-instruct-vllm-predictor})"
+#        operationOverTime: "avg"
+#        targetValue: "35"
+  minReplicaCount: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 10
+        scaleUp:
+          stabilizationWindowSeconds: 10

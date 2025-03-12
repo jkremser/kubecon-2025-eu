@@ -1,0 +1,181 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    ds.bloomberg.com/gpuSubtype: bloomberg.com/gpu-a100
+    identities.bloomberg.com/initContainerNames: storage-initializer
+    internal.serving.kserve.io/localmodel-pvc-name: llama-3-1-70b-instruct-gptq-w8a8-mlx-a100
+    internal.serving.kserve.io/localmodel-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+    internal.serving.kserve.io/storage-initializer-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+    prometheus.kserve.io/path: /metrics
+    prometheus.kserve.io/port: "8080"
+    serving.kserve.io/deploymentMode: RawDeployment
+    sidecar.opentelemetry.io/inject: "true"
+    yas.bloomberg.com/mlx-bri-predictor: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+  labels:
+    app: isvc.autoscaling-llama-3-1-70b-instruct-vllm-predictor
+    component: predictor
+    internal.serving.kserve.io/localmodel: llama-3-1-70b-instruct-gptq-w8a8-mlx
+    serving.kserve.io/inferenceservice: autoscaling-llama-3-1-70b-instruct-vllm
+  name: autoscaling-llama-3-1-70b-instruct-vllm-predictor
+  namespace: s-dsplatform
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: isvc.autoscaling-llama-3-1-70b-instruct-vllm-predictor
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        ds.bloomberg.com/gpuSubtype: bloomberg.com/gpu-a100
+        identities.bloomberg.com/initContainerNames: storage-initializer
+        internal.serving.kserve.io/localmodel-pvc-name: llama-3-1-70b-instruct-gptq-w8a8-mlx-a100
+        internal.serving.kserve.io/localmodel-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+        internal.serving.kserve.io/storage-initializer-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+        prometheus.kserve.io/path: /metrics
+        prometheus.kserve.io/port: "8080"
+        serving.kserve.io/deploymentMode: RawDeployment
+        sidecar.opentelemetry.io/inject: "true"
+        yas.bloomberg.com/mlx-bri-predictor: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+      creationTimestamp: null
+      labels:
+        app: isvc.autoscaling-llama-3-1-70b-instruct-vllm-predictor
+        component: predictor
+        internal.serving.kserve.io/localmodel: llama-3-1-70b-instruct-gptq-w8a8-mlx
+        serving.kserve.io/inferenceservice: autoscaling-llama-3-1-70b-instruct-vllm
+      name: autoscaling-llama-3-1-70b-instruct-vllm-predictor
+      namespace: s-dsplatform
+    spec:
+      containers:
+        - args:
+            - --model
+            - /mnt/models
+            - --port
+            - "8080"
+            - --served-model-name
+            - autoscaling-llama-3-1-70b-instruct-vllm
+            - --model=/mnt/models
+            - --port=8080
+            - --served-model-name=dsp.llama-3.1-70b-instruct
+            - --load-format=safetensors
+            - --dtype=auto
+            - --kv-cache-dtype=auto
+            - --guided-decoding-backend=outlines
+            - --tensor-parallel-size=1
+            - --gpu-memory-utilization=0.99
+            - --max-num-batched-tokens=4096
+            - --max-model-len=4096
+            - --enable-auto-tool-choice
+            - --tool-call-parser=llama3_json
+            - --chat-template=/mnt/models/tool_chat_template_llama3.1_json.jinja
+          env:
+            - name: KSERVE_OPENAI_ROUTE_PREFIX
+          image: artifactory.inf.bloomberg.com/ds/ext/registry-1.docker.io/vllm/vllm-openai:v0.6.4.post1
+          imagePullPolicy: IfNotPresent
+          name: kserve-container
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 8080
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: "4"
+              memory: 100Gi
+              nvidia.com/gpu: "1"
+            requests:
+              cpu: "4"
+              memory: 100Gi
+              nvidia.com/gpu: "1"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    ds.bloomberg.com/gpuSubtype: bloomberg.com/gpu-a100
+    identities.bloomberg.com/initContainerNames: storage-initializer
+    internal.serving.kserve.io/localmodel-pvc-name: llama-3-1-70b-instruct-gptq-w8a8-mlx-a100
+    internal.serving.kserve.io/localmodel-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+    internal.serving.kserve.io/storage-initializer-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+    prometheus.kserve.io/path: /metrics
+    prometheus.kserve.io/port: "8080"
+    serving.kserve.io/deploymentMode: RawDeployment
+    sidecar.opentelemetry.io/inject: "true"
+    yas.bloomberg.com/mlx-bri-predictor: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+  labels:
+    app: isvc.autoscaling-llama-3-1-70b-instruct-vllm-predictor
+    component: predictor
+    internal.serving.kserve.io/localmodel: llama-3-1-70b-instruct-gptq-w8a8-mlx
+    serving.kserve.io/inferenceservice: autoscaling-llama-3-1-70b-instruct-vllm
+  name: autoscaling-llama-3-1-70b-instruct-vllm-predictor
+  namespace: s-dsplatform
+spec:
+  selector:
+    app: isvc.autoscaling-llama-3-1-70b-instruct-vllm-predictor
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    ds.bloomberg.com/gpuSubtype: bloomberg.com/gpu-a100
+    identities.bloomberg.com/initContainerNames: storage-initializer
+    internal.serving.kserve.io/localmodel-pvc-name: llama-3-1-70b-instruct-gptq-w8a8-mlx-a100
+    internal.serving.kserve.io/localmodel-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+    serving.kserve.io/deploymentMode: RawDeployment
+    sidecar.opentelemetry.io/inject: "true"
+    yas.bloomberg.com/mlx-bri-predictor: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+  name: autoscaling-llama-3-1-70b-instruct-vllm
+  namespace: s-dsplatform
+spec:
+  ingressClassName: istio
+  rules:
+    - host: autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: autoscaling-llama-3-1-70b-instruct-vllm-predictor
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+    - host: autoscaling-llama-3-1-70b-instruct-vllm-predictor-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: autoscaling-llama-3-1-70b-instruct-vllm-predictor
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix

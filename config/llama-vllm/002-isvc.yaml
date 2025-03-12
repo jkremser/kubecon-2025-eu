@@ -1,0 +1,75 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  annotations:
+    #ds.bloomberg.com/gpuSubtype: bloomberg.com/gpu-a100
+    #internal.serving.kserve.io/localmodel-pvc-name: llama-3-1-70b-instruct-gptq-w8a8-mlx-a100
+    #internal.serving.kserve.io/localmodel-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+    #yas.bloomberg.com/mlx-bri-predictor: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+    #serving.kserve.io/deploymentMode: RawDeployment
+    #serving.kserve.io/autoscalerClass: external
+    identities.bloomberg.com/initContainerNames: storage-initializer
+    #sidecar.opentelemetry.io/inject: 'true'
+    #rollout.knative.dev/progressive-rollout-strategy: "resourceUtil"
+    dna.bloomberg.com/clusters: bri:si:dsp:managed-compute-cluster:inference-dev-01-pw
+    dna.bloomberg.com/federation-strategy: None
+    dna.bloomberg.com/platform-id: bri:si:compute:managed-compute-platform:dsp
+    dna.bloomberg.com/resource-id: bri:si:dsp:inference-service:dsp-inference-dev:inference-dev-01-pw:s-dsplatform:llama-3-1-70b-instruct-vllm
+    dna.bloomberg.com/tier: bri:si:dsp:managed-compute-tier:dsp-inference-dev
+    ds.bloomberg.com/gpuSubtype: bloomberg.com/gpu-a100
+    internal.serving.kserve.io/localmodel-pvc-name: llama-3-1-70b-instruct-gptq-w8a8-mlx-a100
+    internal.serving.kserve.io/localmodel-sourceuri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+    yas.bloomberg.com/mlx-bri-predictor: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+  name: autoscaling-llama-3-1-70b-serverless
+  namespace: s-dsplatform
+spec:
+  predictor:
+    maxReplicas: 100
+    minReplicas: 2
+    model:
+      args:
+        - --model=/mnt/models
+        - --port=8080
+        - --served-model-name=dsp.llama-3.1-70b-instruct
+        - --load-format=safetensors
+        - --dtype=auto
+        - --kv-cache-dtype=auto
+        - --guided-decoding-backend=outlines
+        - --tensor-parallel-size=1
+        - --gpu-memory-utilization=0.99
+        - --max-num-batched-tokens=4096
+        - --max-model-len=4096
+        - --enable-auto-tool-choice
+        - --tool-call-parser=llama3_json
+        - --chat-template=/mnt/models/tool_chat_template_llama3.1_json.jinja
+      env:
+        - name: KSERVE_OPENAI_ROUTE_PREFIX
+      modelFormat:
+        name: huggingface
+      name: ""
+      resources:
+        limits:
+          cpu: "4"
+          memory: 100Gi
+          nvidia.com/gpu: "1"
+        requests:
+          cpu: "4"
+          memory: 100Gi
+          nvidia.com/gpu: "1"
+      runtime: vllm-openai
+      runtimeVersion: v0.6.4.post1
+      storageUri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
+
+# curl -X POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions' | jq
+# hey -c 200 -z 600s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'
+# k port-forward pod/autoscaling-llama-3-1-70b-instruct-vllm-predictor-6d6576b4rbrjw -n s-dsplatform 8080:8080
+# k port-forward pod/autoscaling-llama-3-1-70b-instruct-vllm-predictor-6d6576b4rbrjw -n s-dsplatform 1234:1234
+
+curl -X POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'https://autoscaling-llama-3-1-70b-serverless-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions' | jq
+curl -X POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-predictor-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions' | jq
+
+hey -c 200 -z 300s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 30 }' 'https://autoscaling-llama-3-1-70b-serverless-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'
+hey -c 200 -z 300s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'https://autoscaling-llama-3-1-70b-serverless-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'
+
+hey -c 200 -z 300s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 30 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'
+hey -c 200 -z 300s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'

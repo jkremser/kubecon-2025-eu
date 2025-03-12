@@ -59,17 +59,3 @@ spec:
       runtime: vllm-openai
       runtimeVersion: v0.6.4.post1
       storageUri: bri:mlx:tenancy:llm-public:model:llama-3-1-70b:revision:instruct-gptq-w8a8
-
-# curl -X POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions' | jq
-# hey -c 200 -z 600s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'
-# k port-forward pod/autoscaling-llama-3-1-70b-instruct-vllm-predictor-6d6576b4rbrjw -n s-dsplatform 8080:8080
-# k port-forward pod/autoscaling-llama-3-1-70b-instruct-vllm-predictor-6d6576b4rbrjw -n s-dsplatform 1234:1234
-
-curl -X POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'https://autoscaling-llama-3-1-70b-serverless-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions' | jq
-curl -X POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-predictor-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions' | jq
-
-hey -c 200 -z 300s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 30 }' 'https://autoscaling-llama-3-1-70b-serverless-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'
-hey -c 200 -z 300s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'https://autoscaling-llama-3-1-70b-serverless-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'
-
-hey -c 200 -z 300s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 30 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'
-hey -c 200 -z 300s -m POST -H 'Accept: */*' -H 'Content-Type: application/json' -d '{ "model": "dsp.llama-3.1-70b-instruct", "messages": [ { "role": "user", "content": "What is the history of the big clock in London?"} ], "stream": false, "max_tokens": 300 }' 'http://autoscaling-llama-3-1-70b-instruct-vllm-s-dsplatform.inference-dev-01-pw.dsp.dev.bloomberg.com/v1/chat/completions'

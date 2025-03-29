@@ -1,4 +1,5 @@
 # csi/csi-manifests.yaml + storage class
+# it's being installed into capg-system ns, so that it can reuse the secret from capg controller
 apiVersion: addons.cluster.x-k8s.io/v1beta1
 kind: ClusterResourceSet
 metadata:

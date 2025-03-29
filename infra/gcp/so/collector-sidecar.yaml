@@ -1,0 +1,72 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-sidecar-template
+spec:
+  resources:
+    limits:
+      cpu: "500m"
+      memory: 300Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  mode: sidecar
+  config:
+    receivers:
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: 'otel-collector'
+            scrape_interval: 3s
+            static_configs:
+            - targets: ['0.0.0.0:8080']
+    processors:
+      resourcedetection/env:
+        detectors: [env]
+        timeout: 2s
+        override: false
+      transform:
+        metric_statements:
+          - context: datapoint
+            statements:
+              - set(attributes["namespace"], resource.attributes["k8s.namespace.name"])
+              - set(attributes["pod"], resource.attributes["k8s.pod.name"])
+              - set(attributes["deployment"], resource.attributes["k8s.deployment.name"])
+      filter/metrics:
+        metrics:
+          include:
+            match_type: strict
+            metric_names:
+              - vllm:gpu_cache_usage_perc
+              - vllm:gpu_cache_usage_perc_scaled
+              - customload
+      metricsgeneration:
+        rules:
+          - name: vllm:gpu_cache_usage_perc_scaled
+            type: scale
+            metric1: vllm:gpu_cache_usage_perc
+            operation: multiply
+            scale_by: 100
+          - name: customload
+            type: calculate
+            metric1: vllm:gpu_cache_usage_perc
+            metric2: vllm:num_requests_waiting
+            operation: multiply
+    exporters:
+      otlp/keda:
+        endpoint: keda-otel-scaler.keda.svc:4317
+        compression: "none"
+        tls:
+          insecure: true
+      debug:
+        verbosity: detailed
+      # prometheus:
+      #   endpoint: "0.0.0.0:1234"
+      #   metric_expiration: 180m
+      #   enable_open_metrics: true
+    service:
+      pipelines:
+        metrics:
+          receivers: [prometheus]
+          processors: [metricsgeneration, filter/metrics, resourcedetection/env, transform]
+          exporters: [debug, otlp/keda]

@@ -112,7 +112,7 @@ k get machinepools
 or gcp - machinedeployments
 
 ```
-source .env && cat gcp.yaml | envsubst | k apply -f - && cat ccm.yaml | envsubst | k apply -f -
+source .env && cat gcp.yaml | envsubst | k apply -f - && cat ccm.yaml | envsubst | k apply -f - && cat csi.yaml | envsubst | k apply -f -
 sleep 1 && {
   date
   kubectl wait --timeout=600s clusters/${CLUSTER_NAME} --for condition=InfrastructureReady && date
@@ -154,13 +154,14 @@ clusterctl --kubeconfig-context=kind-kind get kubeconfig ${CLUSTER_NAME} > kc.tm
 
 # ingress controller
 ```
-kubectl --context=${CLUSTER_NAME} apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml
-kubectl --context=${CLUSTER_NAME} expose deploy/nginx-deployment --type=LoadBalancer --name=nginx-service
+helm upgrade --install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace nginx --create-namespace --version 4.12.1
 ```
 
 # /etc/hosts instead of DNS
 ```
-IP=$(k --context=${CLUSTER_NAME} get svc nginx-service -ojsonpath='{.status.loadBalancer.ingress[].ip}')
+IP=$(k --context=${CLUSTER_NAME} get svc ingress-nginx-controller -nnginx -ojsonpath='{.status.loadBalancer.ingress[].ip}')
 sudo sed -i '/aicluster/d' /etc/hosts
 echo "${IP}  aicluster" | sudo tee -a /etc/hosts
 ```
@@ -187,5 +188,5 @@ kind delete cluster
     - kserve/huggingfaceserver:v0.15.0-rc1-gpu
     - docker.io/vllm/vllm-openai:v0.6.4
     - all csi driver images
-- [] record demos
-- [] webui: https://github.com/open-webui/helm-charts/tree/main/charts/open-webui (explore if they expose traces or metrics that could be used by otel scaler)
+- [x] record demos
+- [x] webui: https://github.com/open-webui/helm-charts/tree/main/charts/open-webui (explore if they expose traces or metrics that could be used by otel scaler)

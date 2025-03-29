@@ -1,0 +1,64 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-production
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: info@kedify.io
+    privateKeySecretRef:
+      name: letsencrypt-production
+    solvers:
+    - http01:
+        ingress:
+          ingressClassName: nginx
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: open-webui
+  annotations: 
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/issuer: "letsencrypt-production"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: llm-web.kremser.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: open-webui
+            port:
+              number: 8080
+  tls:
+  - hosts:
+    - llm-web.kremser.dev
+    secretName: webui-cert
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: model-dns
+  annotations: 
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/issuer: "letsencrypt-production"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: llm-model.kremser.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: llama
+            port:
+              number: 8080
+  tls:
+  - hosts:
+    - llm-model.kremser.dev
+    secretName: model-cert

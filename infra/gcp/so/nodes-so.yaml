@@ -1,0 +1,42 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: gpu-nodes
+spec:
+  scaleTargetRef:
+    apiVersion: cluster.x-k8s.io/v1beta1
+    kind: MachineDeployment
+    # use correct name (it contains the cluster name)
+    name: d1-gpu-nodes
+  triggers:
+    # in case of multiple triggers, max value wins
+    - type: external
+      metadata:
+        scalerAddress: "keda-otel-scaler.keda.svc:4318"
+        # customload is calculated as vllm:gpu_cache_usage_perc x vllm:num_requests_waiting
+        # the model is working (gpu_cache_usage_perc [0 - 1]) and requests are being queued (num_requests_waiting [0 - inf])
+        metricQuery: "sum(customload{model_name=llama3,deployment=llama})"
+        operationOverTime: "avg"
+        targetValue: "20"
+
+  # This will scale the gpu nodes to 0 replicas during off hours
+    # - type: cron
+    #   metadata:
+    #     # timezone: Europe/London  # The acceptable values would be a value from the IANA Time Zone Database.
+    #     timezone: Europe/Prague
+    #     start: 0 8 * * *         # At 8:00 AM
+    #     end: 0 19 * * *          # At 7:00 PM
+    #     desiredReplicas: "1"
+  # minReplicaCount: 0
+
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          # this should be higher in prod
+          stabilizationWindowSeconds: 1800
+        scaleUp:
+          # this should be much higher in prod
+          stabilizationWindowSeconds: 2

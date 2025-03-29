@@ -1,12 +1,12 @@
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: podinfo-pull-example
+  name: podinfo-node-autoscaling
 spec:
   scaleTargetRef:
     apiVersion: cluster.x-k8s.io/v1beta1
     kind: MachineDeployment
-    name: gpu-cluster-gpu-nodes
+    name: nodescaling-cpu-nodes
   triggers:
     - type: external
       metadata:
@@ -23,4 +23,4 @@ spec:
         scaleDown:
           stabilizationWindowSeconds: 600
         scaleUp:
-          stabilizationWindowSeconds: 30
+          stabilizationWindowSeconds: 2

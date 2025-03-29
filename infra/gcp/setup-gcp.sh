@@ -3,6 +3,8 @@ set -euo pipefail
 source .secret
 source .env
 
+SRC_CLUSTER=${SRC_CLUSTER:-"kind-kind"}
+
 function setup_bootstrap_cluster() {
   # setup a bootstrap kind cluster w/ CluterAPI controllers
   kind create cluster --image kindest/node:"${KUBERNETES_VERSION}"
@@ -16,7 +18,7 @@ function setup_bootstrap_cluster() {
 }
 
 function capg-with-gpus() {
-  k8s_context=${1:-"kind-kind"}
+  k8s_context=${1:-${SRC_CLUSTER}}
   arch=${2:-"arm64"}
   echo -e "context: ${k8s_context}\narch: ${arch}"
   [ ! -d ./cluster-api-provider-gcp ] && {
@@ -38,7 +40,7 @@ function capg-with-gpus() {
 
 function create_cluster() {
   # create cluster ${CLUSTER_NAME}
-  cat gcp.yaml | envsubst | k apply -f - && cat ccm.yaml | envsubst | k apply -f -
+  cat gcp.yaml | envsubst | k apply -f - && cat ccm.yaml | envsubst | k apply -f - && cat csi.yaml | envsubst | k apply -f -
   sleep 1 && {
     date
     kubectl wait --timeout=600s clusters/${CLUSTER_NAME} --for condition=InfrastructureReady && date
@@ -55,11 +57,12 @@ function make_self_managed() {
   # make self-managed cluster
   clusterctl --kubeconfig-context=${CLUSTER_NAME} init --infrastructure gcp --addon helm
   capg-with-gpus ${CLUSTER_NAME} amd64
-  clusterctl --kubeconfig-context=kind-kind get kubeconfig ${CLUSTER_NAME} > kc.tmp ; clusterctl --kubeconfig-context=kind-kind move --to-kubeconfig=./kc.tmp ; rm ./kc.tmp
+  clusterctl --kubeconfig-context=${SRC_CLUSTER} get kubeconfig ${CLUSTER_NAME} > kc.tmp ; clusterctl --kubeconfig-context=${SRC_CLUSTER} move --to-kubeconfig=./kc.tmp ; rm ./kc.tmp
 }
 
 function main() {
-  k config use-context kind-kind
+  [[ $# -eq 1 ]] && [[ $1 == bootstrap ]] && setup_bootstrap_cluster
+  k config use-context "${SRC_CLUSTER}"
   create_cluster
   make_self_managed
 }

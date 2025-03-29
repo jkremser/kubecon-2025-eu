@@ -1,0 +1,30 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: model
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: llama
+  triggers:
+    - type: external
+      metadata:
+        scalerAddress: "keda-otel-scaler.keda.svc:4318"
+        metricQuery: "sum(vllm:gpu_cache_usage_perc_scaled{model_name=llama3,deployment=llama})"
+        operationOverTime: "avg"
+        targetValue: "25"
+  minReplicaCount: 2
+  maxReplicaCount: 4
+  fallback:
+    failureThreshold: 10
+    replicas: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          # this should be higher in prod
+          stabilizationWindowSeconds: 120
+        scaleUp:
+          # this should be much higher in prod
+          stabilizationWindowSeconds: 2

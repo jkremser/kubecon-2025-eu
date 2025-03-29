@@ -13,10 +13,10 @@ export GPU="nvidia-l4"
 export MACHINE="g2-standard-8"
 export DISK="pd-balanced"
 
-gcloud -q beta container clusters delete ${CLUSTER} --zone ${GCP_ZONE} --project ${${GCP_PROJECT}} --async
+gcloud -q beta container clusters delete ${CLUSTER} --zone ${GCP_ZONE} --project ${GCP_PROJECT} --async
 
 gcloud beta container clusters create ${CLUSTER} \
-  --project ${${GCP_PROJECT}} \
+  --project ${GCP_PROJECT} \
   --zone ${GCP_ZONE} \
   --release-channel "regular" \
   --machine-type "${MACHINE}" \
@@ -25,7 +25,7 @@ gcloud beta container clusters create ${CLUSTER} \
   --disk-type "${DISK}" \
   --disk-size "300" \
   --metadata disable-legacy-endpoints=true \
-  --service-account "${${GCP_PROJECT}}@${${GCP_PROJECT}}.iam.gserviceaccount.com" \
+  --service-account "${GCP_PROJECT}@${GCP_PROJECT}.iam.gserviceaccount.com" \
   --spot \
   --no-enable-intra-node-visibility \
   --max-pods-per-node "110" \
@@ -44,7 +44,7 @@ gcloud beta container clusters create ${CLUSTER} \
 sleep 5
 
 gcloud container clusters update ${CLUSTER} \
-  --project ${${GCP_PROJECT}} \
+  --project ${GCP_PROJECT} \
   --zone ${GCP_ZONE} \
   --enable-autoprovisioning \
   --min-cpu=1 --max-cpu=8 --min-memory=1 --max-memory=52 \
@@ -53,24 +53,27 @@ gcloud container clusters update ${CLUSTER} \
 sleep 5
 
 # login
-gcloud container clusters get-credentials ${CLUSTER} --zone ${GCP_ZONE} --project ${${GCP_PROJECT}}
+gcloud container clusters get-credentials ${CLUSTER} --zone ${GCP_ZONE} --project ${GCP_PROJECT}
 
 # install kserve and model
-kubectl --context gke_${${GCP_PROJECT}}_${GCP_ZONE}_${CLUSTER} apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
-kubectl --context gke_${${GCP_PROJECT}}_${GCP_ZONE}_${CLUSTER} rollout status -ncert-manager deploy/cert-manager-webhook
-helm --kube-context gke_${${GCP_PROJECT}}_${GCP_ZONE}_${CLUSTER} upgrade -i kserve-crd oci://ghcr.io/kserve/charts/kserve-crd --version v0.15.0-rc1
-helm --kube-context gke_${${GCP_PROJECT}}_${GCP_ZONE}_${CLUSTER} upgrade -i kserve oci://ghcr.io/kserve/charts/kserve --version v0.15.0-rc1 --set kserve.controller.deploymentMode=RawDeployment
-kubectl --context gke_${${GCP_PROJECT}}_${GCP_ZONE}_${CLUSTER} rollout status deploy/kserve-controller-manager
+kubectl --context gke_${GCP_PROJECT}_${GCP_ZONE}_${CLUSTER} apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
+kubectl --context gke_${GCP_PROJECT}_${GCP_ZONE}_${CLUSTER} rollout status -ncert-manager deploy/cert-manager-webhook
+helm --kube-context gke_${GCP_PROJECT}_${GCP_ZONE}_${CLUSTER} upgrade -i kserve-crd oci://ghcr.io/kserve/charts/kserve-crd --version v0.15.0-rc1
+helm --kube-context gke_${GCP_PROJECT}_${GCP_ZONE}_${CLUSTER} upgrade -i kserve oci://ghcr.io/kserve/charts/kserve --version v0.15.0-rc1 --set kserve.controller.deploymentMode=RawDeployment
+kubectl --context gke_${GCP_PROJECT}_${GCP_ZONE}_${CLUSTER} rollout status deploy/kserve-controller-manager
 
-kubectl --context gke_${${GCP_PROJECT}}_${GCP_ZONE}_${CLUSTER} apply -f ./all-kserve-crs.yaml
+kubectl --context gke_${GCP_PROJECT}_${GCP_ZONE}_${CLUSTER} apply -f ./all-kserve-crs.yaml
 
 # expose the svc
 kubectl expose deploy/huggingface-llama3-predictor --type=LoadBalancer --name=llama3 --port=8080 --target-port=8080
-while [ "x$(kubectl --context gke_${${GCP_PROJECT}}_${GCP_ZONE}_${CLUSTER} get svc llama3 -ojsonpath='{.status.loadBalancer.ingress[].ip}')" = "x" ] ; do sleep 1;printf .; done
-IP=$(kubectl --context gke_${${GCP_PROJECT}}_${GCP_ZONE}_${CLUSTER} get svc llama3 -ojsonpath='{.status.loadBalancer.ingress[].ip}')
+while [ "x$(kubectl --context gke_${GCP_PROJECT}_${GCP_ZONE}_${CLUSTER} get svc llama3 -ojsonpath='{.status.loadBalancer.ingress[].ip}')" = "x" ] ; do sleep 1;printf .; done
+IP=$(kubectl --context gke_${GCP_PROJECT}_${GCP_ZONE}_${CLUSTER} get svc llama3 -ojsonpath='{.status.loadBalancer.ingress[].ip}')
 
 
 PROMPT="What tool is the best for templating YAMLs in k8s ecosystem?"
 curl -XPOST -H 'Content-Type: application/json' -H "Host: huggingface-llama3-predictor" http://${IP}:8080/openai/v1/chat/completions -d '{ "model": "llama3", "messages": [ { "role": "user", "content": "${PROMPT}"} ], "stream": false, "max_tokens": 300 }' | jq
 
-#hey -c 100 curl -XPOST -H 'Content-Type: application/json' -H "Host: huggingface-llama3-predictor" http://${IP}:8080/openai/v1/chat/completions -d '{ "model": "llama3", "messages": [ { "role": "user", "content": "${PROMPT}"} ], "stream": false, "max_tokens": 300 }' | jq
+#hey -c 100 -m POST -H 'Content-Type: application/json' -H "Host: huggingface-llama3-predictor" -d '{ "model": "llama3", "messages": [ { "role": "user", "content": "${PROMPT}"} ], "stream": false, "max_tokens": 300 }' http://${IP}:8080/openai/v1/chat/completions
+
+
+# curl -s -XPOST -H 'Content-Type: application/json' http://localhost:8080/v1/chat/completions -d '{ "model": "llama3", "messages": [ { "role": "user", "content": "What is capital of england?"} ], "stream": false, "max_tokens": 300 }' | jq

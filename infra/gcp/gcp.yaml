@@ -197,7 +197,7 @@ spec:
       provisioningModel: Standard
       guestAccelerators:
       - type: ${GPU_ID}
-        count: 1
+        count: 2
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
 kind: KubeadmConfigTemplate
@@ -258,6 +258,9 @@ spec:
 #   namespace: nvidia-device-plugin
 #   version: 0.17.1
 ---
+# https://github.com/NVIDIA/gpu-operator/blob/main/deployments/gpu-operator/values.yaml
+# https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/precompiled-drivers.html
+# https://catalog.ngc.nvidia.com/orgs/nvidia/containers/driver/tags
 # helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
 # helm upgrade -i gpu-operator -n gpu-operator --create-namespace nvidia/gpu-operator
 apiVersion: addons.cluster.x-k8s.io/v1alpha1
@@ -274,6 +277,13 @@ spec:
   releaseName: gpu-operator
   namespace: gpu-operator
   version: v24.9.2
+  valuesTemplate: |
+    # driver:
+    #   # requires ubuntu22.04 kernel
+    #   usePrecompiled: true
+    #   version: 525
+    dcgmExporter:
+      enabled: false
 ---
 # helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 # helm upgrade -i metrics-server metrics-server/metrics-server -n kube-system --set args={--kubelet-insecure-tls}
